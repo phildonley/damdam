@@ -1,4 +1,3 @@
-// Elements
 const gallery = document.getElementById("gallery");
 const searchBar = document.getElementById("searchBar");
 const searchFilter = document.getElementById("searchFilter");
@@ -13,22 +12,26 @@ const modalDownload = document.getElementById("modalDownload");
 const modalClose = document.getElementById("modalClose");
 
 let selectedImages = [];
+let currentData = [];
+let currentIndex = 0;
 
-// Helper Functions
-function renderGallery(data) {
-  gallery.innerHTML = ""; // Clear existing images
-  data.forEach((item) => {
+function renderGallery(data, append = false) {
+  if (!append) {
+    gallery.innerHTML = "";
+    currentIndex = 0;
+  }
+  const slice = data.slice(currentIndex, currentIndex + 30);
+  currentIndex += 30;
+
+  slice.forEach((item) => {
     item.images.forEach((imgUrl) => {
       const imgContainer = document.createElement("div");
       imgContainer.className = "image-container";
+
       const img = document.createElement("img");
       img.src = imgUrl;
       img.alt = item.displayName;
 
-      // Tooltip
-      img.title = `ID: ${item.ID}\nName: ${item.displayName}\nProduct Number: ${item.productNumber}`;
-
-      // File Name
       const fileName = imgUrl.split("/").pop();
 
       const checkbox = document.createElement("input");
@@ -60,6 +63,15 @@ function renderGallery(data) {
 function openModal(imgUrl, fileName) {
   modalImage.src = imgUrl;
   modalFileName.textContent = fileName;
+  modalSelect.onclick = () => {
+    const checkbox = document.querySelector(
+      `input[type="checkbox"][value="${imgUrl}"]`
+    );
+    if (checkbox) checkbox.checked = !checkbox.checked;
+  };
+  modalDownload.onclick = () => {
+    window.open(imgUrl, "_blank");
+  };
   modal.classList.remove("hidden");
 }
 
@@ -67,38 +79,41 @@ function closeModal() {
   modal.classList.add("hidden");
 }
 
-// Event Listeners
+function lazyLoad() {
+  if (
+    window.innerHeight + window.scrollY >= document.body.offsetHeight - 100 &&
+    currentIndex < currentData.length
+  ) {
+    renderGallery(currentData, true);
+  }
+}
+
 searchBar.addEventListener("input", () => {
   const filter = searchFilter.value;
   const query = searchBar.value.toLowerCase();
-  const filteredData = imageData.filter((item) => {
+  currentData = imageData.filter((item) => {
     if (filter === "all") {
       return (
         item.ID.toString().includes(query) ||
         item.displayName.toLowerCase().includes(query) ||
-        item.description.toLowerCase().includes(query) ||
+        item.description?.toLowerCase().includes(query) ||
         item.productNumber.toLowerCase().includes(query)
       );
     }
     return item[filter]?.toString().toLowerCase().includes(query);
   });
-  renderGallery(filteredData);
+  renderGallery(currentData);
 });
 
 clearSearch.addEventListener("click", () => {
   searchBar.value = "";
-  renderGallery(imageData);
+  currentData = imageData;
+  renderGallery(currentData);
 });
 
-downloadSelected.addEventListener("click", () => {
-  if (selectedImages.length === 1) {
-    window.open(selectedImages[0], "_blank");
-  } else if (selectedImages.length > 1) {
-    // Zip logic here...
-  }
-});
-
+window.addEventListener("scroll", lazyLoad);
 modalClose.addEventListener("click", closeModal);
 
 // Initial Render
-renderGallery(imageData);
+currentData = imageData;
+renderGallery(currentData);
