@@ -1,150 +1,139 @@
-// Select elements
-const gallery = document.getElementById('gallery');
-const searchBox = document.getElementById('searchBox');
-const categorySelector = document.getElementById('categorySelector');
-const clearSearchButton = document.getElementById('clearSearch');
-const tooltip = document.getElementById('tooltip');
-const tooltipFilename = document.getElementById('tooltipFilename');
-const modal = document.getElementById('modal');
-const modalImage = document.getElementById('modalImage');
-const modalFileName = document.getElementById('modalFileName');
-const modalMetadata = document.getElementById('modalMetadata');
-const modalSelect = document.getElementById('modalSelect');
-const modalDownload = document.getElementById('modalDownload');
-const downloadSelectedButton = document.getElementById('downloadSelected');
-const clearSelectionsButton = document.getElementById('clearSelections');
+const gallery = document.getElementById("gallery");
+const tooltip = document.getElementById("tooltip");
+const modal = document.getElementById("modal");
+const modalImage = document.getElementById("modal-image");
+const modalFileName = document.getElementById("modal-file-name");
+const modalMetadata = document.getElementById("modal-metadata");
+const modalClose = document.getElementById("modal-close");
+const modalSelect = document.getElementById("modal-select");
+const modalDownload = document.getElementById("modal-download");
+const searchCategory = document.getElementById("search-category");
+const searchBar = document.getElementById("search-bar");
+const clearSearch = document.getElementById("clear-search");
+const downloadSelected = document.getElementById("download-selected");
+const clearSelections = document.getElementById("clear-selections");
 
-// Lazy loading variables
-let lazyLoadIndex = 0;
-const lazyLoadBatchSize = 30;
-
-// Selected items
 let selectedItems = new Set();
+let filteredData = [...imageData]; // Keep a copy of the filtered data for search
+let lazyLoadIndex = 0;
 
-// Render gallery
-function renderGallery(data) {
-    data.forEach((item) => {
-        const imageContainer = document.createElement('div');
-        imageContainer.className = 'image-container';
-
-        const image = document.createElement('img');
-        image.src = item.images[0];
-        image.alt = item.displayName;
-        image.addEventListener('mouseover', () => showTooltip(item, image));
-        image.addEventListener('mouseleave', hideTooltip);
-        image.addEventListener('click', () => openModal(item));
-
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.addEventListener('change', () => toggleSelection(item));
-
-        const filename = document.createElement('p');
-        filename.textContent = parseFileName(item.images[0]);
-
-        imageContainer.appendChild(checkbox);
-        imageContainer.appendChild(image);
-        imageContainer.appendChild(filename);
-        gallery.appendChild(imageContainer);
-    });
-}
-
-// Tooltip logic
-function showTooltip(item, target) {
-    const rect = target.getBoundingClientRect();
-    tooltip.style.top = `${rect.bottom + window.scrollY}px`;
-    tooltip.style.left = `${rect.left}px`;
-    tooltip.classList.remove('hidden');
-    tooltipFilename.textContent = parseFileName(item.images[0]);
-}
-
-function hideTooltip() {
-    tooltip.classList.add('hidden');
-}
-
-// Modal logic
-function openModal(item) {
-    modalImage.src = item.images[0];
-    modalFileName.textContent = parseFileName(item.images[0]);
-    modalMetadata.textContent = `ID: ${item.ID}, Product Number: ${item.productNumber}, Description: ${item.description}`;
-    modal.classList.remove('hidden');
-}
-
-function closeModal() {
-    modal.classList.add('hidden');
-}
-
-// Utility functions
-function parseFileName(url) {
-    const match = url.match(/products%2F(.+?)\.(jpg|jpeg|png|gif)$/i);
-    return match ? match[1] : 'Unknown File';
-}
-
-function toggleSelection(item) {
-    if (selectedItems.has(item)) {
-        selectedItems.delete(item);
-    } else {
-        selectedItems.add(item);
+// Populate the gallery with lazy loading
+function populateGallery(startIndex = 0, batchSize = 30) {
+    const fragment = document.createDocumentFragment();
+    const endIndex = Math.min(startIndex + batchSize, filteredData.length);
+    for (let i = startIndex; i < endIndex; i++) {
+        const image = filteredData[i];
+        const div = document.createElement("div");
+        div.classList.add("gallery-item");
+        div.innerHTML = `
+            <img src="${image.images[0]}" alt="${image.displayName}" data-index="${i}">
+            <input type="checkbox" data-index="${i}">
+            <p>${image.images[0].split("/products/")[1]}</p>
+        `;
+        fragment.appendChild(div);
     }
+    gallery.appendChild(fragment);
+    lazyLoadIndex = endIndex;
 }
-
-// Search functionality
-function performSearch() {
-    const query = searchBox.value.toLowerCase();
-    const category = categorySelector.value;
-    const filteredData = imageData.filter((item) => {
-        if (category === 'all') {
-            return (
-                item.ID.toString().includes(query) ||
-                item.displayName.toLowerCase().includes(query) ||
-                item.description.toLowerCase().includes(query) ||
-                item.productNumber.toLowerCase().includes(query)
-            );
-        } else {
-            return item[category]?.toString().toLowerCase().includes(query);
-        }
-    });
-    gallery.innerHTML = '';
-    renderGallery(filteredData);
-}
-
-// Event listeners
-searchBox.addEventListener('input', performSearch);
-clearSearchButton.addEventListener('click', () => {
-    searchBox.value = '';
-    performSearch();
-});
-modal.querySelector('.close').addEventListener('click', closeModal);
-
-// Initial lazy load
-renderGallery(imageData.slice(0, lazyLoadBatchSize));
 
 // Lazy load on scroll
-window.addEventListener('scroll', () => {
-    if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
-        lazyLoadIndex += lazyLoadBatchSize;
-        renderGallery(imageData.slice(lazyLoadIndex, lazyLoadIndex + lazyLoadBatchSize));
+window.addEventListener("scroll", () => {
+    if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 200) {
+        populateGallery(lazyLoadIndex);
     }
+});
+
+// Tooltip functionality
+gallery.addEventListener("mouseover", (e) => {
+    const target = e.target.closest(".gallery-item img");
+    if (target) {
+        const index = target.dataset.index;
+        const image = filteredData[index];
+        tooltip.innerHTML = `
+            <p>File Name: ${image.images[0].split("/products/")[1]}</p>
+            <p>ID: ${image.ID}</p>
+            <p>Display Name: ${image.displayName}</p>
+            <p>Description: ${image.description || "N/A"}</p>
+            <p>Product Number: ${image.productNumber}</p>
+            <button data-index="${index}" class="tooltip-view">View</button>
+            <button data-index="${index}" class="tooltip-download">Download</button>
+        `;
+        tooltip.classList.remove("hidden");
+    }
+});
+
+// Close tooltip on mouseout
+gallery.addEventListener("mouseout", () => {
+    tooltip.classList.add("hidden");
+});
+
+// Modal functionality
+gallery.addEventListener("click", (e) => {
+    const target = e.target.closest(".gallery-item img");
+    if (target) {
+        const index = target.dataset.index;
+        const image = filteredData[index];
+        modalFileName.textContent = image.images[0].split("/products/")[1];
+        modalImage.src = image.images[0];
+        modalMetadata.innerHTML = `
+            <p>ID: ${image.ID}</p>
+            <p>Display Name: ${image.displayName}</p>
+            <p>Description: ${image.description || "N/A"}</p>
+            <p>Product Number: ${image.productNumber}</p>
+        `;
+        modal.classList.remove("hidden");
+    }
+});
+
+// Close modal
+modalClose.addEventListener("click", () => modal.classList.add("hidden"));
+
+// Search functionality
+searchBar.addEventListener("input", () => {
+    const query = searchBar.value.toLowerCase();
+    const category = searchCategory.value;
+    filteredData = imageData.filter((image) => {
+        if (category === "all") {
+            return Object.values(image).some((value) => String(value).toLowerCase().includes(query));
+        }
+        return String(image[category]).toLowerCase().includes(query);
+    });
+    gallery.innerHTML = "";
+    lazyLoadIndex = 0;
+    populateGallery();
+});
+
+// Clear search
+clearSearch.addEventListener("click", () => {
+    searchBar.value = "";
+    filteredData = [...imageData];
+    gallery.innerHTML = "";
+    lazyLoadIndex = 0;
+    populateGallery();
+});
+
+// Handle downloads
+downloadSelected.addEventListener("click", async () => {
+    if (selectedItems.size === 0) return;
+    const zip = new JSZip();
+    for (const index of selectedItems) {
+        const image = filteredData[index];
+        const fileName = image.images[0].split("/products/")[1];
+        const blob = await fetch(image.images[0]).then((res) => res.blob());
+        zip.file(fileName, blob);
+    }
+    zip.generateAsync({ type: "blob" }).then((content) => {
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(content);
+        a.download = `selected_images_${Date.now()}.zip`;
+        a.click();
+    });
 });
 
 // Clear selections
-clearSelectionsButton.addEventListener('click', () => {
+clearSelections.addEventListener("click", () => {
     selectedItems.clear();
-    document.querySelectorAll('.image-container input[type="checkbox"]').forEach((checkbox) => {
-        checkbox.checked = false;
+    document.querySelectorAll(".gallery-item input[type='checkbox']").forEach((cb) => {
+        cb.checked = false;
     });
-});
-
-// Download selected
-downloadSelectedButton.addEventListener('click', () => {
-    if (selectedItems.size === 1) {
-        // Download single file
-        const item = Array.from(selectedItems)[0];
-        const link = document.createElement('a');
-        link.href = item.images[0];
-        link.download = parseFileName(item.images[0]);
-        link.click();
-    } else if (selectedItems.size > 1) {
-        // Bundle selected files into a ZIP (use JSZip for this functionality)
-        alert('ZIP download is not implemented yet.');
-    }
 });
