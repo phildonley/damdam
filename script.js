@@ -36,8 +36,11 @@ function renderGallery(data, append = false) {
       const img = document.createElement("img");
       img.src = imgUrl;
       img.alt = item.displayName;
+      img.addEventListener("click", () => viewImage(imgUrl, item));
 
-      const fileName = parseFileName(imgUrl);
+      const fileNameDiv = document.createElement("div");
+      fileNameDiv.className = "file-name";
+      fileNameDiv.textContent = parseFileName(imgUrl);
 
       const checkbox = document.createElement("input");
       checkbox.type = "checkbox";
@@ -50,52 +53,27 @@ function renderGallery(data, append = false) {
         }
       });
 
-      const tooltip = document.createElement("div");
-      tooltip.className = "tooltip";
-      tooltip.innerHTML = `
-        <div><strong>${fileName}</strong></div>
-        <button onclick="viewImage('${imgUrl}', '${fileName}')">View</button>
-        <button onclick="downloadImage('${imgUrl}')">Download</button>
-      `;
-
-      img.addEventListener("mouseover", () => {
-        tooltip.style.display = "block";
-      });
-
-      img.addEventListener("mouseout", () => {
-        tooltip.style.display = "none";
-      });
-
       imgContainer.appendChild(img);
+      imgContainer.appendChild(fileNameDiv);
       imgContainer.appendChild(checkbox);
-      imgContainer.appendChild(tooltip);
       gallery.appendChild(imgContainer);
     });
   });
 }
 
-function viewImage(url, fileName) {
+function viewImage(url, item) {
   modalImage.src = url;
-  modalFileName.textContent = fileName;
-  modalMetaData.textContent = "Some metadata here";
+  modalFileName.textContent = parseFileName(url);
+  modalMetaData.innerHTML = `
+    <div>ID: ${item.ID}</div>
+    <div>Display Name: ${item.displayName}</div>
+    <div>Description: ${item.description}</div>
+    <div>Product Number: ${item.productNumber}</div>
+  `;
   modal.classList.remove("hidden");
 }
 
-function closeModal() {
-  modal.classList.add("hidden");
-}
-
-function lazyLoad() {
-  if (
-    window.innerHeight + window.scrollY >= document.body.offsetHeight - 100 &&
-    currentIndex < currentData.length
-  ) {
-    renderGallery(currentData, true);
-  }
-}
-
-modalClose.addEventListener("click", closeModal);
-window.addEventListener("scroll", lazyLoad);
+modalClose.addEventListener("click", () => modal.classList.add("hidden"));
 
 // Initialize
 currentData = imageData;
