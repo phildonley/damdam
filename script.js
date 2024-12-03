@@ -1,138 +1,115 @@
-const gallery = document.getElementById("gallery");
-const searchBar = document.getElementById("searchBar");
-const searchCategory = document.getElementById("searchCategory");
-const clearSearchButton = document.getElementById("clearSearch");
-const downloadSelectedButton = document.getElementById("downloadSelected");
-const clearSelectionButton = document.getElementById("clearSelection");
+// Fetch data from embedded JSON-like structure
+const imageData = [
+    // JSON data structure here
+];
+
+// Elements
+const galleryContainer = document.getElementById("gallery-container");
+const searchInput = document.getElementById("search-input");
+const searchCategory = document.getElementById("search-category");
+const clearSearchBtn = document.getElementById("clear-search");
+const downloadSelectedBtn = document.getElementById("download-selected");
+const clearSelectionBtn = document.getElementById("clear-selection");
 const modal = document.getElementById("modal");
-const modalImage = document.getElementById("modalImage");
-const modalDetails = document.getElementById("modalDetails");
-const modalCloseButton = document.getElementById("modalCloseButton");
-const selectToggle = document.getElementById("selectToggle");
-const modalDownloadButton = document.getElementById("modalDownloadButton");
+const modalImage = document.getElementById("modal-image");
+const modalInfo = document.getElementById("modal-info");
+const modalSelect = document.getElementById("modal-select");
+const modalDownload = document.getElementById("modal-download");
+const closeButton = document.querySelector(".close-button");
 
-let selectedImages = new Set();
+let selectedImages = [];
+let currentModalImage = null;
 
-// Render gallery items
-function renderGallery(images) {
-    gallery.innerHTML = '';
-    images.forEach((image) => {
-        const item = document.createElement("div");
-        item.classList.add("gallery-item");
-        item.innerHTML = `
-            <img src="${image.images[0]}" alt="${image.displayName}" data-id="${image.ID}" class="thumbnail" />
-            <div class="info">
-                <p>${image.images[0].split('/').pop()}</p>
-                <input type="checkbox" data-id="${image.ID}" class="select-checkbox" />
-            </div>
-        `;
-        gallery.appendChild(item);
+// Populate Gallery
+function populateGallery(filteredData = imageData) {
+    galleryContainer.innerHTML = ""; // Clear existing images
+    filteredData.forEach((item) => {
+        item.images.forEach((imageURL) => {
+            const imageWrapper = document.createElement("div");
+            imageWrapper.className = "image-wrapper";
 
-        // Add event listener to the thumbnail
-        const thumbnail = item.querySelector(".thumbnail");
-        thumbnail.addEventListener("click", () => openModal(image));
+            const img = document.createElement("img");
+            img.src = imageURL;
+            img.alt = item.displayName;
+            img.addEventListener("click", () => openModal(item, imageURL));
 
-        // Add event listener to the checkbox
-        const checkbox = item.querySelector(".select-checkbox");
-        checkbox.addEventListener("change", () => toggleSelection(image, checkbox.checked));
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.addEventListener("change", () => toggleSelection(imageURL));
+
+            const label = document.createElement("label");
+            label.textContent = imageURL.split("/").pop(); // Parse file name
+
+            imageWrapper.append(img, checkbox, label);
+            galleryContainer.appendChild(imageWrapper);
+        });
     });
 }
 
-// Open modal
-function openModal(image) {
-    modalImage.src = image.images[0];
-    modalDetails.innerHTML = `
-        <p>ID: ${image.ID}</p>
-        <p>Name: ${image.displayName}</p>
-        <p>Description: ${image.description || 'No description available'}</p>
-    `;
-    selectToggle.textContent = selectedImages.has(image) ? "Unselect" : "Select";
-    modal.classList.remove("hidden");
-
-    // Add event listener to modal buttons
-    selectToggle.onclick = () => toggleSelection(image, !selectedImages.has(image));
-    modalDownloadButton.onclick = () => downloadImage(image.images[0]);
-}
-
-// Close modal
-modalCloseButton.addEventListener("click", () => {
-    modal.classList.add("hidden");
-});
-
-// Toggle selection
-function toggleSelection(image, isSelected) {
-    if (isSelected) {
-        selectedImages.add(image);
-    } else {
-        selectedImages.delete(image);
-    }
-    updateSelectedCheckbox(image.ID, isSelected);
-}
-
-// Update selected checkbox
-function updateSelectedCheckbox(id, isSelected) {
-    const checkbox = gallery.querySelector(`.select-checkbox[data-id="${id}"]`);
-    if (checkbox) {
-        checkbox.checked = isSelected;
-    }
-}
-
-// Download single image
-function downloadImage(url) {
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = url.split('/').pop();
-    a.click();
-}
-
-// Download selected images as ZIP
-function downloadSelected() {
-    if (selectedImages.size === 1) {
-        const singleImage = Array.from(selectedImages)[0].images[0];
-        downloadImage(singleImage);
-        return;
-    }
-
-    // Create ZIP file logic
-    const zip = new JSZip();
-    selectedImages.forEach((image) => {
-        zip.file(image.images[0].split('/').pop(), fetch(image.images[0]).then((res) => res.blob()));
-    });
-
-    zip.generateAsync({ type: "blob" }).then((content) => {
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(content);
-        a.download = `cxc_image_extract_${new Date().toISOString()}.zip`;
-        a.click();
-    });
-}
-
-// Clear selections
-clearSelectionButton.addEventListener("click", () => {
-    selectedImages.clear();
-    gallery.querySelectorAll(".select-checkbox").forEach((checkbox) => {
-        checkbox.checked = false;
-    });
-});
-
-// Filter images based on search
-searchBar.addEventListener("input", () => {
-    const query = searchBar.value.toLowerCase();
+// Search Functionality
+function searchImages() {
+    const query = searchInput.value.toLowerCase();
     const category = searchCategory.value;
-    const filteredImages = imageData.filter((image) => {
+
+    const filteredData = imageData.filter((item) => {
         if (category === "all") {
-            return Object.values(image).some((value) => value?.toString().toLowerCase().includes(query));
+            return Object.values(item).some((value) =>
+                value.toString().toLowerCase().includes(query)
+            );
         }
-        return image[category]?.toString().toLowerCase().includes(query);
+        return item[category]?.toString().toLowerCase().includes(query);
     });
-    renderGallery(filteredImages);
-});
 
-// Clear search
-clearSearchButton.addEventListener("click", () => {
-    searchBar.value = '';
-    renderGallery(imageData);
-});
+    populateGallery(filteredData);
+}
 
-// Initial render
-renderGallery(imageData);
+// Modal Functionality
+function openModal(item, imageURL) {
+    currentModalImage = imageURL;
+    modalImage.src = imageURL;
+    modalInfo.textContent = `Product: ${item.productNumber}`;
+    modal.classList.remove("hidden");
+}
+
+function closeModal() {
+    modal.classList.add("hidden");
+    currentModalImage = null;
+}
+
+// Selection Functionality
+function toggleSelection(imageURL) {
+    if (selectedImages.includes(imageURL)) {
+        selectedImages = selectedImages.filter((url) => url !== imageURL);
+    } else {
+        selectedImages.push(imageURL);
+    }
+}
+
+// Download Functionality
+function downloadImages() {
+    if (selectedImages.length === 1) {
+        const link = document.createElement("a");
+        link.href = selectedImages[0];
+        link.download = selectedImages[0].split("/").pop();
+        link.click();
+    } else if (selectedImages.length > 1) {
+        // Logic to bundle images into zip and download
+    }
+}
+
+// Event Listeners
+searchInput.addEventListener("input", searchImages);
+clearSearchBtn.addEventListener("click", () => {
+    searchInput.value = "";
+    populateGallery();
+});
+downloadSelectedBtn.addEventListener("click", downloadImages);
+clearSelectionBtn.addEventListener("click", () => {
+    selectedImages = [];
+    document.querySelectorAll("input[type='checkbox']").forEach((cb) => {
+        cb.checked = false;
+    });
+});
+closeButton.addEventListener("click", closeModal);
+
+populateGallery(); // Initial Load
