@@ -9,15 +9,17 @@
 <body>
     <header>
         <h1>Genie DAM</h1>
-        <input type="text" id="searchBox" placeholder="Search..." />
-        <select id="categorySelector">
-            <option value="all">Search All</option>
-            <option value="ID">ID</option>
-            <option value="displayName">Display Name</option>
-            <option value="description">Description</option>
-            <option value="productNumber">Product Number</option>
-        </select>
-        <button id="clearSearch">Clear Search</button>
+        <div class="search-container">
+            <input type="text" id="searchBox" placeholder="Search..." />
+            <select id="categorySelector">
+                <option value="all">Search All</option>
+                <option value="ID">ID</option>
+                <option value="displayName">Display Name</option>
+                <option value="description">Description</option>
+                <option value="productNumber">Product Number</option>
+            </select>
+            <button id="clearSearch">Clear Search</button>
+        </div>
     </header>
     <main id="gallery"></main>
     <footer>
@@ -32,9 +34,12 @@
     <div id="modal" class="modal hidden">
         <button class="close">&times;</button>
         <img id="modalImage" alt="Larger View" />
-        <p id="modalMetadata"></p>
-        <button id="modalSelect">Select</button>
-        <button id="modalDownload">Download</button>
+        <div id="modalData">
+            <h2 id="modalFileName"></h2>
+            <p id="modalMetadata"></p>
+            <button id="modalSelect">Select</button>
+            <button id="modalDownload">Download</button>
+        </div>
     </div>
     <script src="image_data.js"></script>
     <script src="script.js"></script>
