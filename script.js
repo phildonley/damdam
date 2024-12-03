@@ -7,6 +7,7 @@ const clearSelections = document.getElementById("clearSelections");
 const modal = document.getElementById("modal");
 const modalImage = document.getElementById("modalImage");
 const modalFileName = document.getElementById("modalFileName");
+const modalMetaData = document.getElementById("modalMetaData");
 const modalSelect = document.getElementById("modalSelect");
 const modalDownload = document.getElementById("modalDownload");
 const modalClose = document.getElementById("modalClose");
@@ -14,6 +15,10 @@ const modalClose = document.getElementById("modalClose");
 let selectedImages = [];
 let currentData = [];
 let currentIndex = 0;
+
+function parseFileName(url) {
+  return url.split("products%2F").pop();
+}
 
 function renderGallery(data, append = false) {
   if (!append) {
@@ -32,7 +37,7 @@ function renderGallery(data, append = false) {
       img.src = imgUrl;
       img.alt = item.displayName;
 
-      const fileName = imgUrl.split("/").pop();
+      const fileName = parseFileName(imgUrl);
 
       const checkbox = document.createElement("input");
       checkbox.type = "checkbox";
@@ -45,33 +50,34 @@ function renderGallery(data, append = false) {
         }
       });
 
-      const fileLabel = document.createElement("div");
-      fileLabel.textContent = fileName;
+      const tooltip = document.createElement("div");
+      tooltip.className = "tooltip";
+      tooltip.innerHTML = `
+        <div><strong>${fileName}</strong></div>
+        <button onclick="viewImage('${imgUrl}', '${fileName}')">View</button>
+        <button onclick="downloadImage('${imgUrl}')">Download</button>
+      `;
 
-      img.addEventListener("click", () => {
-        openModal(imgUrl, fileName);
+      img.addEventListener("mouseover", () => {
+        tooltip.style.display = "block";
+      });
+
+      img.addEventListener("mouseout", () => {
+        tooltip.style.display = "none";
       });
 
       imgContainer.appendChild(img);
       imgContainer.appendChild(checkbox);
-      imgContainer.appendChild(fileLabel);
+      imgContainer.appendChild(tooltip);
       gallery.appendChild(imgContainer);
     });
   });
 }
 
-function openModal(imgUrl, fileName) {
-  modalImage.src = imgUrl;
+function viewImage(url, fileName) {
+  modalImage.src = url;
   modalFileName.textContent = fileName;
-  modalSelect.onclick = () => {
-    const checkbox = document.querySelector(
-      `input[type="checkbox"][value="${imgUrl}"]`
-    );
-    if (checkbox) checkbox.checked = !checkbox.checked;
-  };
-  modalDownload.onclick = () => {
-    window.open(imgUrl, "_blank");
-  };
+  modalMetaData.textContent = "Some metadata here";
   modal.classList.remove("hidden");
 }
 
@@ -88,32 +94,9 @@ function lazyLoad() {
   }
 }
 
-searchBar.addEventListener("input", () => {
-  const filter = searchFilter.value;
-  const query = searchBar.value.toLowerCase();
-  currentData = imageData.filter((item) => {
-    if (filter === "all") {
-      return (
-        item.ID.toString().includes(query) ||
-        item.displayName.toLowerCase().includes(query) ||
-        item.description?.toLowerCase().includes(query) ||
-        item.productNumber.toLowerCase().includes(query)
-      );
-    }
-    return item[filter]?.toString().toLowerCase().includes(query);
-  });
-  renderGallery(currentData);
-});
-
-clearSearch.addEventListener("click", () => {
-  searchBar.value = "";
-  currentData = imageData;
-  renderGallery(currentData);
-});
-
-window.addEventListener("scroll", lazyLoad);
 modalClose.addEventListener("click", closeModal);
+window.addEventListener("scroll", lazyLoad);
 
-// Initial Render
+// Initialize
 currentData = imageData;
 renderGallery(currentData);
