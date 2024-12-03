@@ -3,40 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enhanced Image Viewer</title>
+    <title>Genie DAM</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <header>
         <div class="search-bar">
-            <input type="text" id="searchBar" placeholder="Search..." />
-            <select id="searchCategory">
+            <select id="search-category">
                 <option value="all">Search All</option>
                 <option value="ID">ID</option>
                 <option value="displayName">Display Name</option>
                 <option value="description">Description</option>
+                <option value="longDescription">Long Description</option>
                 <option value="productNumber">Product Number</option>
             </select>
-            <button id="clearSearch">Clear Search</button>
+            <input type="text" id="search-input" placeholder="Search...">
+            <button id="clear-search">Clear Search</button>
         </div>
     </header>
-    <main id="gallery"></main>
+    <main id="gallery-container"></main>
     <footer>
-        <button id="downloadSelected">Download Selected</button>
-        <button id="clearSelection">Clear Selection</button>
+        <button id="download-selected">Download Selected</button>
+        <button id="clear-selection">Clear Selection</button>
     </footer>
+
+    <!-- Modal for larger view -->
     <div id="modal" class="hidden">
         <div class="modal-content">
-            <span id="modalCloseButton" class="close-button">&times;</span>
-            <img id="modalImage" src="" alt="Larger view">
-            <div id="modalDetails"></div>
-            <div class="modal-actions">
-                <button id="selectToggle" class="btn">Select</button>
-                <button id="modalDownloadButton" class="btn">Download</button>
+            <span class="close-button">&times;</span>
+            <img id="modal-image" alt="Larger view">
+            <div id="modal-info"></div>
+            <div class="modal-buttons">
+                <button id="modal-select">Select</button>
+                <button id="modal-download">Download</button>
             </div>
         </div>
     </div>
-    <script src="image_data.js"></script>
+
     <script src="script.js"></script>
 </body>
 </html>
