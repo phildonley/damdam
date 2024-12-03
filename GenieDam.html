@@ -1,45 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Genie DAM</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Genie DAM</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <header>
-        <div class="search-bar">
-            <select id="search-category">
-                <option value="all">Search All</option>
-                <option value="ID">ID</option>
-                <option value="displayName">Display Name</option>
-                <option value="description">Description</option>
-                <option value="longDescription">Long Description</option>
-                <option value="productNumber">Product Number</option>
-            </select>
-            <input type="text" id="search-input" placeholder="Search...">
-            <button id="clear-search">Clear Search</button>
-        </div>
-    </header>
-    <main id="gallery-container"></main>
-    <footer>
-        <button id="download-selected">Download Selected</button>
-        <button id="clear-selection">Clear Selection</button>
-    </footer>
-
-    <!-- Modal for larger view -->
-    <div id="modal" class="hidden">
-        <div class="modal-content">
-            <span class="close-button">&times;</span>
-            <img id="modal-image" alt="Larger view">
-            <div id="modal-info"></div>
-            <div class="modal-buttons">
-                <button id="modal-select">Select</button>
-                <button id="modal-download">Download</button>
-            </div>
-        </div>
+  <header>
+    <h1>Genie DAM</h1>
+    <div class="search-bar">
+      <input id="searchBar" type="text" placeholder="Search..." />
+      <select id="searchFilter">
+        <option value="all">Search All</option>
+        <option value="ID">ID</option>
+        <option value="displayName">Display Name</option>
+        <option value="description">Description</option>
+        <option value="productNumber">Product Number</option>
+      </select>
+      <button id="clearSearch">Clear Search</button>
     </div>
+  </header>
+  <main>
+    <div id="gallery" class="gallery"></div>
+  </main>
+  <footer>
+    <button id="downloadSelected">Download Selected</button>
+    <button id="clearSelections">Clear Selections</button>
+  </footer>
 
-    <script src="script.js"></script>
+  <div id="modal" class="modal hidden">
+    <div class="modal-content">
+      <span id="modalClose" class="modal-close">&times;</span>
+      <img id="modalImage" src="" alt="Larger View">
+      <div class="modal-info">
+        <h2 id="modalFileName"></h2>
+        <button id="modalSelect">Select</button>
+        <button id="modalDownload">Download</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="image_data.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
