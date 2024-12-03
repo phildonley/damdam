@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Image Viewer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <div class="search-bar">
+            <input type="text" id="searchBar" placeholder="Search..." />
+            <select id="searchCategory">
+                <option value="all">Search All</option>
+                <option value="ID">ID</option>
+                <option value="displayName">Display Name</option>
+                <option value="description">Description</option>
+                <option value="productNumber">Product Number</option>
+            </select>
+            <button id="clearSearch">Clear Search</button>
+        </div>
+    </header>
+    <main id="gallery"></main>
+    <footer>
+        <button id="downloadSelected">Download Selected</button>
+        <button id="clearSelection">Clear Selection</button>
+    </footer>
+    <div id="modal" class="hidden">
+        <div class="modal-content">
+            <span id="modalCloseButton" class="close-button">&times;</span>
+            <img id="modalImage" src="" alt="Larger view">
+            <div id="modalDetails"></div>
+            <div class="modal-actions">
+                <button id="selectToggle" class="btn">Select</button>
+                <button id="modalDownloadButton" class="btn">Download</button>
+            </div>
+        </div>
+    </div>
+    <script src="image_data.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
