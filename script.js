@@ -4,6 +4,10 @@ const searchFilter = document.getElementById("searchFilter");
 const clearSearch = document.getElementById("clearSearch");
 const downloadSelected = document.getElementById("downloadSelected");
 const clearSelections = document.getElementById("clearSelections");
+const tooltip = document.getElementById("tooltip");
+const tooltipFileName = document.getElementById("tooltipFileName");
+const tooltipView = document.getElementById("tooltipView");
+const tooltipDownload = document.getElementById("tooltipDownload");
 const modal = document.getElementById("modal");
 const modalImage = document.getElementById("modalImage");
 const modalFileName = document.getElementById("modalFileName");
@@ -36,7 +40,8 @@ function renderGallery(data, append = false) {
       const img = document.createElement("img");
       img.src = imgUrl;
       img.alt = item.displayName;
-      img.addEventListener("click", () => viewImage(imgUrl, item));
+      img.addEventListener("mouseenter", (e) => showTooltip(e, imgUrl, item));
+      img.addEventListener("mouseleave", hideTooltip);
 
       const fileNameDiv = document.createElement("div");
       fileNameDiv.className = "file-name";
@@ -61,6 +66,19 @@ function renderGallery(data, append = false) {
   });
 }
 
+function showTooltip(event, imgUrl, item) {
+  tooltip.style.display = "block";
+  tooltip.style.left = `${event.pageX + 10}px`;
+  tooltip.style.top = `${event.pageY + 10}px`;
+  tooltipFileName.textContent = parseFileName(imgUrl);
+  tooltipView.onclick = () => viewImage(imgUrl, item);
+  tooltipDownload.onclick = () => downloadFile(imgUrl);
+}
+
+function hideTooltip() {
+  tooltip.style.display = "none";
+}
+
 function viewImage(url, item) {
   modalImage.src = url;
   modalFileName.textContent = parseFileName(url);
@@ -71,6 +89,13 @@ function viewImage(url, item) {
     <div>Product Number: ${item.productNumber}</div>
   `;
   modal.classList.remove("hidden");
+}
+
+function downloadFile(url) {
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = parseFileName(url);
+  a.click();
 }
 
 modalClose.addEventListener("click", () => modal.classList.add("hidden"));
