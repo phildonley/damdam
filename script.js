@@ -1,115 +1,104 @@
-// Fetch data from embedded JSON-like structure
-const imageData = [
-    // JSON data structure here
-];
-
 // Elements
-const galleryContainer = document.getElementById("gallery-container");
-const searchInput = document.getElementById("search-input");
-const searchCategory = document.getElementById("search-category");
-const clearSearchBtn = document.getElementById("clear-search");
-const downloadSelectedBtn = document.getElementById("download-selected");
-const clearSelectionBtn = document.getElementById("clear-selection");
+const gallery = document.getElementById("gallery");
+const searchBar = document.getElementById("searchBar");
+const searchFilter = document.getElementById("searchFilter");
+const clearSearch = document.getElementById("clearSearch");
+const downloadSelected = document.getElementById("downloadSelected");
+const clearSelections = document.getElementById("clearSelections");
 const modal = document.getElementById("modal");
-const modalImage = document.getElementById("modal-image");
-const modalInfo = document.getElementById("modal-info");
-const modalSelect = document.getElementById("modal-select");
-const modalDownload = document.getElementById("modal-download");
-const closeButton = document.querySelector(".close-button");
+const modalImage = document.getElementById("modalImage");
+const modalFileName = document.getElementById("modalFileName");
+const modalSelect = document.getElementById("modalSelect");
+const modalDownload = document.getElementById("modalDownload");
+const modalClose = document.getElementById("modalClose");
 
 let selectedImages = [];
-let currentModalImage = null;
 
-// Populate Gallery
-function populateGallery(filteredData = imageData) {
-    galleryContainer.innerHTML = ""; // Clear existing images
-    filteredData.forEach((item) => {
-        item.images.forEach((imageURL) => {
-            const imageWrapper = document.createElement("div");
-            imageWrapper.className = "image-wrapper";
+// Helper Functions
+function renderGallery(data) {
+  gallery.innerHTML = ""; // Clear existing images
+  data.forEach((item) => {
+    item.images.forEach((imgUrl) => {
+      const imgContainer = document.createElement("div");
+      imgContainer.className = "image-container";
+      const img = document.createElement("img");
+      img.src = imgUrl;
+      img.alt = item.displayName;
 
-            const img = document.createElement("img");
-            img.src = imageURL;
-            img.alt = item.displayName;
-            img.addEventListener("click", () => openModal(item, imageURL));
+      // Tooltip
+      img.title = `ID: ${item.ID}\nName: ${item.displayName}\nProduct Number: ${item.productNumber}`;
 
-            const checkbox = document.createElement("input");
-            checkbox.type = "checkbox";
-            checkbox.addEventListener("change", () => toggleSelection(imageURL));
+      // File Name
+      const fileName = imgUrl.split("/").pop();
 
-            const label = document.createElement("label");
-            label.textContent = imageURL.split("/").pop(); // Parse file name
-
-            imageWrapper.append(img, checkbox, label);
-            galleryContainer.appendChild(imageWrapper);
-        });
-    });
-}
-
-// Search Functionality
-function searchImages() {
-    const query = searchInput.value.toLowerCase();
-    const category = searchCategory.value;
-
-    const filteredData = imageData.filter((item) => {
-        if (category === "all") {
-            return Object.values(item).some((value) =>
-                value.toString().toLowerCase().includes(query)
-            );
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.className = "select-checkbox";
+      checkbox.addEventListener("change", () => {
+        if (checkbox.checked) {
+          selectedImages.push(imgUrl);
+        } else {
+          selectedImages = selectedImages.filter((url) => url !== imgUrl);
         }
-        return item[category]?.toString().toLowerCase().includes(query);
-    });
+      });
 
-    populateGallery(filteredData);
+      const fileLabel = document.createElement("div");
+      fileLabel.textContent = fileName;
+
+      img.addEventListener("click", () => {
+        openModal(imgUrl, fileName);
+      });
+
+      imgContainer.appendChild(img);
+      imgContainer.appendChild(checkbox);
+      imgContainer.appendChild(fileLabel);
+      gallery.appendChild(imgContainer);
+    });
+  });
 }
 
-// Modal Functionality
-function openModal(item, imageURL) {
-    currentModalImage = imageURL;
-    modalImage.src = imageURL;
-    modalInfo.textContent = `Product: ${item.productNumber}`;
-    modal.classList.remove("hidden");
+function openModal(imgUrl, fileName) {
+  modalImage.src = imgUrl;
+  modalFileName.textContent = fileName;
+  modal.classList.remove("hidden");
 }
 
 function closeModal() {
-    modal.classList.add("hidden");
-    currentModalImage = null;
-}
-
-// Selection Functionality
-function toggleSelection(imageURL) {
-    if (selectedImages.includes(imageURL)) {
-        selectedImages = selectedImages.filter((url) => url !== imageURL);
-    } else {
-        selectedImages.push(imageURL);
-    }
-}
-
-// Download Functionality
-function downloadImages() {
-    if (selectedImages.length === 1) {
-        const link = document.createElement("a");
-        link.href = selectedImages[0];
-        link.download = selectedImages[0].split("/").pop();
-        link.click();
-    } else if (selectedImages.length > 1) {
-        // Logic to bundle images into zip and download
-    }
+  modal.classList.add("hidden");
 }
 
 // Event Listeners
-searchInput.addEventListener("input", searchImages);
-clearSearchBtn.addEventListener("click", () => {
-    searchInput.value = "";
-    populateGallery();
+searchBar.addEventListener("input", () => {
+  const filter = searchFilter.value;
+  const query = searchBar.value.toLowerCase();
+  const filteredData = imageData.filter((item) => {
+    if (filter === "all") {
+      return (
+        item.ID.toString().includes(query) ||
+        item.displayName.toLowerCase().includes(query) ||
+        item.description.toLowerCase().includes(query) ||
+        item.productNumber.toLowerCase().includes(query)
+      );
+    }
+    return item[filter]?.toString().toLowerCase().includes(query);
+  });
+  renderGallery(filteredData);
 });
-downloadSelectedBtn.addEventListener("click", downloadImages);
-clearSelectionBtn.addEventListener("click", () => {
-    selectedImages = [];
-    document.querySelectorAll("input[type='checkbox']").forEach((cb) => {
-        cb.checked = false;
-    });
-});
-closeButton.addEventListener("click", closeModal);
 
-populateGallery(); // Initial Load
+clearSearch.addEventListener("click", () => {
+  searchBar.value = "";
+  renderGallery(imageData);
+});
+
+downloadSelected.addEventListener("click", () => {
+  if (selectedImages.length === 1) {
+    window.open(selectedImages[0], "_blank");
+  } else if (selectedImages.length > 1) {
+    // Zip logic here...
+  }
+});
+
+modalClose.addEventListener("click", closeModal);
+
+// Initial Render
+renderGallery(imageData);
