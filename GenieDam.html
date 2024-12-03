@@ -3,42 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Genie DAM</title>
+    <title>Dynamic Image Gallery</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <header>
-        <h1>Genie DAM</h1>
-        <div class="search-container">
-            <input type="text" id="searchBox" placeholder="Search..." />
-            <select id="categorySelector">
+        <div class="header-content">
+            <select id="search-category">
                 <option value="all">Search All</option>
                 <option value="ID">ID</option>
                 <option value="displayName">Display Name</option>
                 <option value="description">Description</option>
                 <option value="productNumber">Product Number</option>
             </select>
-            <button id="clearSearch">Clear Search</button>
+            <input type="text" id="search-bar" placeholder="Search...">
+            <button id="clear-search">Clear Search</button>
         </div>
     </header>
     <main id="gallery"></main>
     <footer>
-        <button id="downloadSelected">Download Selected</button>
-        <button id="clearSelections">Clear Selections</button>
+        <button id="download-selected">Download Selected</button>
+        <button id="clear-selections">Clear Selections</button>
     </footer>
-    <div id="tooltip" class="tooltip hidden">
-        <p id="tooltipFilename"></p>
-        <button id="viewButton">View</button>
-        <button id="downloadButton">Download</button>
-    </div>
+    <div id="tooltip" class="tooltip hidden"></div>
     <div id="modal" class="modal hidden">
-        <button class="close">&times;</button>
-        <img id="modalImage" alt="Larger View" />
-        <div id="modalData">
-            <h2 id="modalFileName"></h2>
-            <p id="modalMetadata"></p>
-            <button id="modalSelect">Select</button>
-            <button id="modalDownload">Download</button>
+        <div class="modal-content">
+            <span class="modal-close" id="modal-close">&times;</span>
+            <p id="modal-file-name"></p>
+            <img id="modal-image" src="" alt="Image Preview">
+            <p id="modal-metadata"></p>
+            <button id="modal-select">Select</button>
+            <button id="modal-download">Download</button>
         </div>
     </div>
     <script src="image_data.js"></script>
