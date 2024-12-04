@@ -1,134 +1,130 @@
-// DOM Elements
-const gallery = document.getElementById('gallery');
-const searchBar = document.getElementById('search-bar');
-const searchCategory = document.getElementById('search-category');
-const clearSearchBtn = document.getElementById('clear-search');
-const tooltip = document.getElementById('tooltip');
-const modal = document.getElementById('modal');
-const modalImage = document.getElementById('modal-image');
-const modalFileName = document.getElementById('modal-file-name');
-const modalMetaData = document.getElementById('modal-meta-data');
-const closeModal = document.getElementById('close-modal');
-const modalSelect = document.getElementById('modal-select');
-const modalDownload = document.getElementById('modal-download');
-const downloadSelectedBtn = document.getElementById('download-selected');
-const clearSelectionsBtn = document.getElementById('clear-selections');
+document.addEventListener("DOMContentLoaded", () => {
+    const gallery = document.getElementById("gallery");
+    const tooltip = document.getElementById("tooltip");
+    const modal = document.getElementById("modal");
+    const modalImage = document.getElementById("modal-image");
+    const modalMetadata = document.getElementById("modal-metadata");
+    const modalClose = document.getElementById("modal-close");
+    const modalDownload = document.getElementById("modal-download");
+    const modalSelect = document.getElementById("modal-select");
+    const searchBox = document.getElementById("search-box");
+    const searchCategory = document.getElementById("search-category");
+    const clearSearch = document.getElementById("clear-search");
+    const downloadSelected = document.getElementById("download-selected");
+    const clearSelections = document.getElementById("clear-selections");
 
-// Global State
-let selectedImages = [];
-let lazyLoadIndex = 0;
-const lazyLoadBatchSize = 30;
+    let lazyLoadIndex = 0;
+    const lazyLoadBatch = 30;
 
-// Function to Render Gallery
-function renderGallery(data) {
-    gallery.innerHTML = '';
-    const batch = data.slice(lazyLoadIndex, lazyLoadIndex + lazyLoadBatchSize);
-    lazyLoadIndex += lazyLoadBatchSize;
+    const loadImages = (images) => {
+        const fragment = document.createDocumentFragment();
+        images.forEach((image) => {
+            const container = document.createElement("div");
+            container.className = "image-container";
 
-    batch.forEach(item => {
-        const galleryItem = document.createElement('div');
-        galleryItem.classList.add('gallery-item');
-        galleryItem.innerHTML = `
-            <input type="checkbox" data-file="${item.images[0]}" />
-            <img src="${item.images[0]}" alt="${item.displayName}" data-id="${item.ID}" />
-            <p>${item.images[0].split('/').pop()}</p>
-        `;
-        gallery.appendChild(galleryItem);
+            const img = document.createElement("img");
+            img.src = image.images[0];
+            img.alt = image.displayName;
+            img.dataset.metadata = JSON.stringify(image);
 
-        // Tooltip Event
-        galleryItem.addEventListener('mouseover', () => showTooltip(item, galleryItem));
-        galleryItem.addEventListener('mouseout', () => hideTooltip());
-        galleryItem.querySelector('img').addEventListener('click', () => openModal(item));
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.className = "image-checkbox";
+
+            const fileName = document.createElement("p");
+            fileName.className = "file-name";
+            fileName.textContent = image.images[0].split("/").pop();
+
+            container.appendChild(img);
+            container.appendChild(checkbox);
+            container.appendChild(fileName);
+            fragment.appendChild(container);
+
+            img.addEventListener("click", () => openModal(image));
+            img.addEventListener("mouseover", (e) => showTooltip(e, image));
+            img.addEventListener("mouseout", hideTooltip);
+        });
+
+        gallery.appendChild(fragment);
+    };
+
+    const showTooltip = (event, image) => {
+        tooltip.textContent = `${image.displayName}\n${image.productNumber}`;
+        tooltip.style.top = `${event.clientY + 10}px`;
+        tooltip.style.left = `${event.clientX + 10}px`;
+        tooltip.classList.remove("hidden");
+    };
+
+    const hideTooltip = () => {
+        tooltip.classList.add("hidden");
+    };
+
+    const openModal = (image) => {
+        modalImage.src = image.images[0];
+        modalMetadata.textContent = JSON.stringify(image, null, 2);
+        modal.classList.remove("hidden");
+    };
+
+    modalClose.addEventListener("click", () => {
+        modal.classList.add("hidden");
     });
-}
 
-// Tooltip Functions
-function showTooltip(item, element) {
-    tooltip.innerHTML = `
-        <p><strong>File:</strong> ${item.images[0].split('/').pop()}</p>
-        <p><strong>ID:</strong> ${item.ID}</p>
-        <p><strong>Display Name:</strong> ${item.displayName}</p>
-        <p><strong>Description:</strong> ${item.description}</p>
-        <button onclick="downloadFile('${item.images[0]}')">Download</button>
-    `;
-    const rect = element.getBoundingClientRect();
-    tooltip.style.top = `${rect.top + window.scrollY}px`;
-    tooltip.style.left = `${rect.left + rect.width}px`;
-    tooltip.classList.add('visible');
-}
+    const searchImages = () => {
+        const query = searchBox.value.toLowerCase();
+        const category = searchCategory.value;
 
-function hideTooltip() {
-    tooltip.classList.remove('visible');
-}
+        const filtered = imageData.filter((image) => {
+            if (category === "all") {
+                return Object.values(image).some((value) =>
+                    value.toString().toLowerCase().includes(query)
+                );
+            }
+            return image[category]
+                ?.toString()
+                .toLowerCase()
+                .includes(query);
+        });
 
-// Modal Functions
-function openModal(item) {
-    modalImage.src = item.images[0];
-    modalFileName.textContent = item.images[0].split('/').pop();
-    modalMetaData.innerHTML = `
-        <p><strong>ID:</strong> ${item.ID}</p>
-        <p><strong>Display Name:</strong> ${item.displayName}</p>
-        <p><strong>Description:</strong> ${item.description}</p>
-    `;
-    modal.classList.add('visible');
-}
+        gallery.innerHTML = "";
+        loadImages(filtered.slice(0, lazyLoadBatch));
+    };
 
-function closeModalWindow() {
-    modal.classList.remove('visible');
-}
+    searchBox.addEventListener("input", searchImages);
+    clearSearch.addEventListener("click", () => {
+        searchBox.value = "";
+        gallery.innerHTML = "";
+        loadImages(imageData.slice(0, lazyLoadBatch));
+    });
 
-closeModal.addEventListener('click', closeModalWindow);
-
-// Download and Clear Functions
-function downloadFile(url) {
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = url.split('/').pop();
-    link.click();
-}
-
-downloadSelectedBtn.addEventListener('click', () => {
-    if (selectedImages.length === 1) {
-        downloadFile(selectedImages[0]);
-    } else if (selectedImages.length > 1) {
-        // ZIP functionality to be added
-        alert('ZIP creation is not yet implemented.');
-    }
-});
-
-clearSelectionsBtn.addEventListener('click', () => {
-    selectedImages = [];
-    document.querySelectorAll('.gallery-item input[type="checkbox"]').forEach(cb => cb.checked = false);
-});
-
-// Search Functionality
-searchBar.addEventListener('input', () => {
-    const query = searchBar.value.toLowerCase();
-    const category = searchCategory.value;
-
-    const filteredData = imageData.filter(item => {
-        if (category === 'all') {
-            return Object.values(item).some(val => String(val).toLowerCase().includes(query));
+    let selectedImages = [];
+    downloadSelected.addEventListener("click", () => {
+        if (selectedImages.length === 0) {
+            alert("No images selected.");
+            return;
         }
-        return String(item[category]).toLowerCase().includes(query);
+
+        // Add logic for zipping and downloading selected images
+        console.log("Download logic pending...");
     });
 
-    lazyLoadIndex = 0; // Reset lazy loading
-    renderGallery(filteredData);
-});
+    clearSelections.addEventListener("click", () => {
+        selectedImages = [];
+        document.querySelectorAll(".image-checkbox").forEach((checkbox) => {
+            checkbox.checked = false;
+        });
+    });
 
-clearSearchBtn.addEventListener('click', () => {
-    searchBar.value = '';
-    lazyLoadIndex = 0;
-    renderGallery(imageData);
-});
+    window.addEventListener("scroll", () => {
+        if (
+            window.innerHeight + window.scrollY >= document.body.offsetHeight &&
+            lazyLoadIndex < imageData.length
+        ) {
+            lazyLoadIndex += lazyLoadBatch;
+            loadImages(
+                imageData.slice(lazyLoadIndex, lazyLoadIndex + lazyLoadBatch)
+            );
+        }
+    });
 
-// Lazy Load
-window.addEventListener('scroll', () => {
-    if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 50) {
-        renderGallery(imageData);
-    }
+    loadImages(imageData.slice(0, lazyLoadBatch));
 });
-
-// Initial Render
-renderGallery(imageData);

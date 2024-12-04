@@ -5,24 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Genie DAM</title>
     <link rel="stylesheet" href="styles.css">
-    <script defer src="script.js"></script>
-    <script defer src="image_data.js"></script>
+    <script src="script.js" defer></script>
+    <script src="image_data.js" defer></script>
 </head>
 <body>
     <header>
-        <div class="header-content">
-            <div class="brand">Genie DAM</div>
-            <div class="search-container">
-                <select id="search-category">
-                    <option value="all">Search All</option>
-                    <option value="ID">ID</option>
-                    <option value="displayName">Display Name</option>
-                    <option value="description">Description</option>
-                    <option value="productNumber">Product Number</option>
-                </select>
-                <input type="text" id="search-bar" placeholder="Search...">
-                <button id="clear-search">Clear Search</button>
-            </div>
+        <img src="images/genie_dam_logo.jpg" alt="Genie DAM" class="logo">
+        <div class="search-container">
+            <select id="search-category">
+                <option value="all">Search All</option>
+                <option value="ID">ID</option>
+                <option value="displayName">Display Name</option>
+                <option value="description">Description</option>
+                <option value="productNumber">Product Number</option>
+            </select>
+            <input type="text" id="search-box" placeholder="Search...">
+            <button id="clear-search">Clear Search</button>
         </div>
     </header>
     <main id="gallery"></main>
@@ -30,16 +28,14 @@
         <button id="download-selected">Download Selected</button>
         <button id="clear-selections">Clear Selections</button>
     </footer>
-    <div id="tooltip" class="tooltip"></div>
-    <div id="modal" class="modal">
-        <div class="modal-content">
-            <span class="modal-close" id="close-modal">&times;</span>
-            <p id="modal-file-name"></p>
-            <img id="modal-image" src="" alt="Large View">
-            <div id="modal-meta-data"></div>
-            <button id="modal-select">Select</button>
-            <button id="modal-download">Download</button>
-        </div>
+
+    <div id="tooltip" class="hidden"></div>
+    <div id="modal" class="hidden">
+        <span id="modal-close">&times;</span>
+        <img id="modal-image" src="" alt="Selected Image">
+        <div id="modal-metadata"></div>
+        <button id="modal-download">Download</button>
+        <button id="modal-select">Select</button>
     </div>
 </body>
 </html>
